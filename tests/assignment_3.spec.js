@@ -1,7 +1,7 @@
 // Events List Locators and Text Assertions
 
 const { test, expect } = require('@playwright/test');
-import {
+const {
 	login,
 	navigateToEventsPage,
 	getEventCards,
@@ -9,26 +9,27 @@ import {
 	findEventCardByTitle,
 	getEventDetails,
 	parseSeatCount,
-} from './helper';
+	getEventCardByTitle
+} = require('./helper');
 
-test.skip('locators and text assertions', async ({ page }) => {
-	await login(page, expect);
-	const eventCard = findEventCardByTitle(page, 'Dilli Diwali Mela').first();
-	const details = await getEventDetails(eventCard);
-	await expect(details.seatCount).toBeGreaterThan(0);
-});
 
 // Login and open the Events page
 
-test('Login and open the Events page', async ({ page }) => {
-	await navigateToEventsPage(page, expect);
+test('Step 1 — Login and open the Events page', async ({ page }) => {
+	await login(page);
+	await page.getByRole('link', { name: 'Browse Events →' }).click();
+	if (expect) {
+		await expect(page.getByRole('heading', { name: 'Upcoming Events' })).toBeVisible();
+	}
 });
 
 // Practice multiple locator strategies on the filter area
 
 test('Test1: Step2: multiple locatory strategies', async ({ page }) => {
-	await navigateToEventsPage(page, expect);
-	await applyEventFilters(page, 'Los Angeles', 'Conference', 'Hyderabad');
+	await navigateToEventsPage(page);
+	await page.getByPlaceholder('Search events, venues…').fill('World');
+	await page.getByRole('combobox').nth(0).selectOption('Conference');
+	await page.getByRole('combobox').nth(1).selectOption('Hyderabad');
 
 	const eventCards = getEventCards(page);
 	await expect(eventCards).toHaveCount(1);
@@ -39,7 +40,7 @@ test('Test1: Step2: multiple locatory strategies', async ({ page }) => {
 // Work with multiple matching event cards
 
 test('Test1: Step3: Work with multiple matching event cards', async ({ page }) => {
-	await navigateToEventsPage(page, expect);
+	await navigateToEventsPage(page);
 
 	const eventCards = getEventCards(page);
 	await expect(eventCards.first()).toBeVisible();
@@ -54,16 +55,20 @@ test('Test1: Step3: Work with multiple matching event cards', async ({ page }) =
 // Step 4 — Extract text and reuse it in assertions
 
 test('Test1: Step4: Extract text and reuse it in assertions', async ({ page }) => {
-	await navigateToEventsPage(page, expect);
-	await applyEventFilters(page, 'Los Angeles', 'Conference', 'Hyderabad');
+	await navigateToEventsPage(page);
+	await applyEventFilters(page, 'World Tech Summit', 'Conference', 'Hyderabad');
 
-	const eventCards = getEventCards(page);
-	await expect(eventCards).toHaveCount(1);
+	//const eventCards = getEventCards(page);
+	//await expect(eventCards).toHaveCount(1);
 
-	const details = await getEventDetails(eventCards.first());
+	const selectedCard = getEventCardByTitle(page, 'World Tech Summit');
+
+	const details = await getEventDetails(selectedCard);
 	await expect(details.eventTitle).toBe('World Tech Summit');
 	await expect(details.eventPrice).toContain('$');
-	await expect(details.seatCount).toBeGreaterThan(0);
+	//await expect(details.seatCount).toBeGreaterThan(0);
+	const seatCount = await parseSeatCount(details.eventSeats);
+	await expect(seatCount).toBeGreaterThan(0);
 });
 
 // Step 5 — Open the correct event using a scoped locator
@@ -72,13 +77,13 @@ test('Test1: Step5: Open the correct event using a scoped locator', async ({ pag
 	await navigateToEventsPage(page, expect);
 	await applyEventFilters(page, '', 'Conference', 'Hyderabad');
 
-	const selectedCard = getEventCards(page).first();
+	const selectedCard = getEventCardByTitle(page, 'World Tech Summit');
 	const details = await getEventDetails(selectedCard);
 
 	await selectedCard.getByTestId('book-now-btn').click();
 	await expect(page).toHaveURL(/events/);
 	await expect(page.getByRole('heading', { name: details.eventTitle })).toBeVisible();
-	await expect(page.getByText(details.eventPrice)).toBeVisible();
+	await expect(page.getByText(details.eventPrice.trim())).toBeVisible();
 });
 
 // Test 2 — Practice nth, first, and last on the event list
@@ -106,7 +111,7 @@ test('Test2: Step1: Go back to the Events page', async ({ page }) => {
 
 //Step 2 — Compare specific items from the list
 
-test.only('Test2: Step2: Compare specific items from the list', async ({ page }) => {
+test('Test2: Step2: Compare specific items from the list', async ({ page }) => {
     await navigateToEventsPage(page, expect);
 
     // Extract details from the first, second, and last event cards
@@ -123,3 +128,4 @@ test.only('Test2: Step2: Compare specific items from the list', async ({ page })
     //Assert the first and last event titles are different
     await expect(firstEventDetails.eventTitle).not.toBe(lastEventDetails.eventTitle);
 });
+

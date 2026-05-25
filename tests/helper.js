@@ -1,39 +1,61 @@
-export async function openLoginPage(page) {
-	await page.goto('https://eventhub.rahulshettyacademy.com');
-	await page.getByText('Sign in to EventHub', { exact: true });
+const {expect} = require('@playwright/test');
+require('dotenv').config(); 
+
+const TEST_EMAIL = process.env.TEST_EMAIL || 'umamaheswarreddy.t@gmail.com';
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'MxqKDd6Cxxs!3$H';
+
+const BASE_URL = 'https://eventhub.rahulshettyacademy.com';
+//globalThis.BASE_URL = BASE_URL;
+
+async function openLoginPage(page) {
+	await page.goto(BASE_URL + '/login');
+	await expect(page.getByText('Sign in to EventHub', { exact: true })).toBeVisible();
 }
 
-export async function getEmailField(page) {
+async function getEmailField(page) {
 	const emailInput = await page.getByPlaceholder('you@email.com');
 	return emailInput;
 }
 
-// login(page) helper that signs in and asserts the Browse Events link is visible
-export async function login(page, expect) {
-	await page.goto('https://eventhub.rahulshettyacademy.com');
-	await page.locator('input#email').fill('umamaheswarreddy.t@gmail.com');
-	await page.locator('input#password').fill('MxqKDd6Cxxs!3$H');
+async function loginWithCredentials(page, email, password) {
+	await page.goto(BASE_URL);
+	await page.locator('input#email').fill(email);
+	await page.locator('input#password').fill(password);
 	await page.getByRole('button', { name: 'Sign In' }).click();
 	await page.waitForLoadState('networkidle');
-	await expect(page.getByRole('link', { name: 'Browse Events →' })).toBeVisible();
+	await page.getByRole('link', { name: 'Browse Events →' }).waitFor();
 }
 
-export function getEventCards(page) {
+// login(page) helper that signs in and asserts the Browse Events link is visible
+async function login(page) {
+	await page.goto(BASE_URL);
+	await page.locator('input#email').fill(TEST_EMAIL);
+	await page.locator('input#password').fill(TEST_PASSWORD);
+	await page.getByRole('button', { name: 'Sign In' }).click();
+	await page.waitForLoadState('networkidle');
+	await page.getByRole('link', { name: 'Browse Events →' }).waitFor();
+}
+
+function getEventCards(page) {
 	return page.getByTestId('event-card');
 }
 
-export async function applyEventFilters(page, search, category, city) {
+function getEventCardByTitle(page, title) {
+    return page.locator('h3', { hasText: title }).locator('xpath=ancestor::*[@data-testid="event-card"]');
+}
+
+async function applyEventFilters(page, search, category, city) {
 	await page.getByPlaceholder('Search events, venues…').fill(search);
-	await page.getByRole('button', { name: 'Clear filters' }).click();
+	//await page.getByRole('button', { name: 'Clear filters' }).click();
 	await page.getByRole('combobox').nth(0).selectOption(category);
 	await page.getByRole('combobox').nth(1).selectOption(city);
 }
 
-export function findEventCardByTitle(page, title) {
+function findEventCardByTitle(page, title) {
 	return getEventCards(page).filter({ hasText: title });
 }
 
-export async function getEventDetails(card) {
+async function getEventDetails(card) {
 	const eventTitle = await card.locator('h3').textContent();
 	const eventPrice = await card.locator('p').filter({ hasText: '$' }).textContent();
 	const eventSeats = await card.locator('span').filter({ hasText: 'seats' }).textContent();
@@ -41,15 +63,46 @@ export async function getEventDetails(card) {
 	return { eventTitle, eventPrice, eventSeats, seatCount };
 }
 
-export function parseSeatCount(seatText) {
+async function parseSeatCount(seatText) {
 	const seats = parseInt(seatText.match(/\d+/)[0], 10);
-	console.log(seats); // 10000
+	//console.log(seats);
 	return seats;
 }
 
 // helper function that navigates to the events page
-export async function navigateToEventsPage(page, expect) {
-	await login(page, expect);
+async function navigateToEventsPage(page) {
+	//await page.goto('https://eventhub.rahulshettyacademy.com');
+	//await openLoginPage(page, expect);
+	await login(page);
 	await page.getByRole('link', { name: 'Browse Events →' }).click();
-	await expect(page.getByRole('heading', { name: 'Upcoming Events' })).toBeVisible();
+	if (expect) {
+		await expect(page.getByRole('heading', { name: 'Upcoming Events' })).toBeVisible();
+	}
 }
+
+async function createBookingFromFilters(page, { searchText, category, city, quantity, customerName, customerEmail, phone }) {
+	await page.getByRole('link', { name: 'Browse Events →' }).click();
+	await page.getByPlaceholder('Search events, venues…').fill(searchText);
+	await page.getByRole('combobox').nth(0).selectOption(category);
+	await page.getByRole('combobox').nth(1).selectOption(city);
+	const selectedCard = getEventCards(page).first();
+	//await selectedCard.getByTestId('book-now-btn').click();
+	await selectedCard.getByRole('link', { name: 'Book Now' }).click();	
+	
+}
+
+
+module.exports = {
+	BASE_URL,
+	openLoginPage,
+	getEmailField,
+	login,
+	getEventCards,
+	applyEventFilters,
+	findEventCardByTitle,
+	getEventDetails,
+	parseSeatCount,
+	navigateToEventsPage,
+	createBookingFromFilters,
+	getEventCardByTitle
+};

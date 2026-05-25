@@ -1,19 +1,20 @@
 const { defineConfig } = require('@playwright/test');
 
-//const BASE_URL = 'https://eventhub.rahulshettyacademy.com';
-
-export default defineConfig({
-    testDir: 'tests',
+module.exports = defineConfig({
+    testDir: './tests',
+    retries: 0,
     use: {
-        baseURL: 'https://eventhub.rahulshettyacademy.com',
-        retries: 0,
+        baseURL: 'https://eventhub.rahulshettyacademy.com'
     },
 
     projects: [
         {
             name: 'chromium',
 
-        }
+        },
+        // {
+        //     name: 'firefox',
+        // }
     ]
 
 });
