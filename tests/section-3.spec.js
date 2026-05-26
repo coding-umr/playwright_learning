@@ -24,9 +24,10 @@ expect(await page.getByRole('heading', { name: 'World Tech Summit' }).textConten
 
   //Step 2 - Return to the event catalog and book a second event
   test('Test case 1 - Step 2 - Book a second event', async ({ page }) => {
-    //await openLoginPage(page);
-    //await login(page, 'umamaheswarreddy.t@gmail.com', 'MxqKDd6Cxxs!3$H');
-    await page.getByRole('button', { name: 'Browse More Events' }).click();
+    await openLoginPage(page);
+    await login(page, 'umamaheswarreddy.t@gmail.com', 'MxqKDd6Cxxs!3$H');
+    //await page.getByRole('link', { name: 'Browse Events →' }).click();
+   // await page.getByRole('button', { name: 'Browse More Events' }).click();
     await createBookingFromFilters(page, {
       searchText: 'Dilli',
       category: 'Festival',

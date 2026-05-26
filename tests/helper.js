@@ -1,10 +1,12 @@
 const {expect} = require('@playwright/test');
 require('dotenv').config(); 
+const config = require('../playwright.config');
 
-const TEST_EMAIL = process.env.TEST_EMAIL || 'umamaheswarreddy.t@gmail.com';
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'MxqKDd6Cxxs!3$H';
 
-const BASE_URL = 'https://eventhub.rahulshettyacademy.com';
+const TEST_EMAIL = process.env.TEST_EMAIL;
+const TEST_PASSWORD = process.env.TEST_PASSWORD;
+
+const BASE_URL = config.use.baseURL;
 //globalThis.BASE_URL = BASE_URL;
 
 async function openLoginPage(page) {
@@ -37,7 +39,8 @@ async function login(page) {
 }
 
 function getEventCards(page) {
-	return page.getByTestId('event-card');
+	const eventCards = page.getByTestId('event-card');
+	return eventCards;
 }
 
 function getEventCardByTitle(page, title) {

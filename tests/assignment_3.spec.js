@@ -93,7 +93,7 @@ test('Test2: Step1: Go back to the Events page', async ({ page }) => {
 	await navigateToEventsPage(page, expect);
 	await applyEventFilters(page, 'World', 'Conference', 'Hyderabad');
 
-	const eventCards = getEventCards(page);
+	const eventCards = await getEventCards(page);
 	await expect(eventCards).toHaveCount(1);
 
 	// Navigate back to /events
@@ -104,7 +104,7 @@ test('Test2: Step1: Go back to the Events page', async ({ page }) => {
 	await page.getByRole('combobox').nth(0).selectOption('All Categories');
 	await page.getByRole('combobox').nth(1).selectOption('All Cities');
 
-	const eventCardsHome = getEventCards(page);
+	const eventCardsHome = await getEventCards(page);
 	const count = await eventCardsHome.count();
 	await expect(count).toBeGreaterThanOrEqual(3);
 }); 
@@ -115,10 +115,10 @@ test('Test2: Step2: Compare specific items from the list', async ({ page }) => {
     await navigateToEventsPage(page, expect);
 
     // Extract details from the first, second, and last event cards
-    const eventCards = getEventCards(page);
+    const eventCards = await getEventCards(page);
     const firstEventDetails = await getEventDetails(eventCards.first());
     const lastEventDetails = await getEventDetails(eventCards.last());
-    const secondEventDetails = await getEventDetails(eventCards.nth(1))
+    const secondEventDetails = await getEventDetails(eventCards.nth(1));
 
    //Assert all extracted titles are non-empty strings
     await expect(firstEventDetails.eventTitle).toBeTruthy();

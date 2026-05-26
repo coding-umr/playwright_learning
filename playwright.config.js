@@ -12,9 +12,9 @@ module.exports = defineConfig({
             name: 'chromium',
 
         },
-        // {
-        //     name: 'firefox',
-        // }
+        {
+            name: 'firefox',
+        }
     ]
 
 });
